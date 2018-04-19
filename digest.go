@@ -243,16 +243,18 @@ func (t *Transport) RoundTrip(req *http.Request) (*http.Response, error) {
 	}
 
 	// We need two reader for the body.
-	tmp, err := ioutil.ReadAll(req.Body)
-	if err != nil {
-		return nil, err
+	if req.Body != nil {
+		tmp, err := ioutil.ReadAll(req.Body)
+		if err != nil {
+			return nil, err
+		}
+
+		reqBody01 := ioutil.NopCloser(bytes.NewBuffer(tmp))
+		reqBody02 := ioutil.NopCloser(bytes.NewBuffer(tmp))
+
+		req.Body = reqBody01
+		req2.Body = reqBody02
 	}
-
-	reqBody01 := ioutil.NopCloser(bytes.NewBuffer(tmp))
-	reqBody02 := ioutil.NopCloser(bytes.NewBuffer(tmp))
-
-	req.Body = reqBody01
-	req2.Body = reqBody02
 
 	// Make a request to get the 401 that contains the challenge.
 	resp, err := t.Transport.RoundTrip(req)
