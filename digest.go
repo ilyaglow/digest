@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-// The digest package provides an implementation of http.RoundTripper that takes
+// Package digest provides an implementation of http.RoundTripper that takes
 // care of HTTP Digest Authentication (http://www.ietf.org/rfc/rfc2617.txt).
 // This only implements the MD5 and "auth" portions of the RFC, but that covers
 // the majority of avalible server side implementations including apache web
@@ -20,6 +20,16 @@
 //
 // Example usage:
 //
+// It is recommended to create a client with a transport:
+//	client := http.Client{
+//		Transport: digest.NewTransport("username", "passphrase"),
+//	}
+//	resp, err := client.Get("http://website.com")
+//	if err != nil {
+//		return err
+//	}
+//
+// Original examples from https://github.com/bobziuchkovski/digest:
 //	t := NewTransport("myUserName", "myP@55w0rd")
 //	req, err := http.NewRequest("GET", "http://notreal.com/path?arg=1", nil)
 //	if err != nil {
@@ -44,20 +54,25 @@
 package digest
 
 import (
+	"bytes"
 	"crypto/md5"
 	"crypto/rand"
 	"errors"
 	"fmt"
 	"io"
+	"io/ioutil"
 	"net/http"
 	"strings"
-	"io/ioutil"
-	"bytes"
 )
 
 var (
-	ErrNilTransport      = errors.New("Transport is nil")
-	ErrBadChallenge      = errors.New("Challenge is bad")
+	// ErrNilTransport represents a transport nil error
+	ErrNilTransport = errors.New("Transport is nil")
+
+	// ErrBadChallenge represents a challenge nonce error
+	ErrBadChallenge = errors.New("Challenge is bad")
+
+	// ErrAlgNotImplemented represents a unimplemented algorithm error
 	ErrAlgNotImplemented = errors.New("Alg not implemented")
 )
 
